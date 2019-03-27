@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">My Application</string>
+
+    <string name="spinner_prompt">통증을 선택하시오</string>
+
+    <string-array name="pain_array">
+        <item>두통</item>
+        <item>복통</item>
+        <item>생리통</item>
+        <item>요통</item>
+    </string-array>
+</resources>
