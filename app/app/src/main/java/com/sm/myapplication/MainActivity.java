@@ -1,6 +1,5 @@
 package com.sm.myapplication;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,21 +13,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button b = (Button) findViewById(R.id.suji);
-        Button c = (Button)findViewById(R.id.log);
-        b.setOnClickListener(new View.OnClickListener() {
+        Button spinnerButton = (Button) findViewById(R.id.camera);
+        Button logButton = (Button)findViewById(R.id.log);
+        spinnerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this , suji.class);
+                Intent intent = new Intent(MainActivity.this , SpinnerActivity.class);
                 startActivity(intent);
+                overridePendingTransition(0, 0);
             }
         });
 
-        c.setOnClickListener(new View.OnClickListener() {
+        logButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this , log.class);
+                Intent intent = new Intent(MainActivity.this , logActivity.class);
                 startActivity(intent);
+                overridePendingTransition(0, 0);
             }
         });
     }

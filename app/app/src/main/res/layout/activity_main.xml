@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="카메라"
-            android:id="@+id/suji"/>
+            android:id="@+id/camera"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
