@@ -8,7 +8,7 @@ using namespace cv;
 extern "C"{
 
     JNIEXPORT void JNICALL
-   Java_com_tistory_webnautes_useopencvwithndk_1build_MainActivity_ConvertRGBtoGray(
+   Java_com_sm_myapplication_CameraActivity_ConvertRGBtoGray(
             JNIEnv *env,
             jobject  instance,
             jlong matAddrInput,
