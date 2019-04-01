@@ -26,15 +26,10 @@
         <activity android:name=".CameraActivity"
             android:screenOrientation="landscape"
             android:configChanges="keyboardHidden|orientation"></activity>
-        <activity android:name=".logActivity"
-            android:screenOrientation="landscape"
-            android:configChanges="keyboardHidden|orientation"/>
+        <activity android:name=".logActivity"/>
         <activity android:name=".SpinnerActivity"
-            android:screenOrientation="landscape"
             android:configChanges="keyboardHidden|orientation"/>
-        <activity android:name=".MainActivity"
-            android:screenOrientation="landscape"
-            android:configChanges="keyboardHidden|orientation">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
