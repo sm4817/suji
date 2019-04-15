@@ -1,0 +1,8 @@
+version : opencv 3.4.6
+
+수정해야 할 부분
+//Mat probMap = new Mat(H, W, CvType.CV_32F,output.ptr(0,n));
+Mat probMap = new Mat(H, W, CvType.CV_32F);
+
+//minMaxLoc(probMap, 0, prob, 0, maxLoc);
+Core.minMaxLoc(probMap);  

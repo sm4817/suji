@@ -1,0 +1,151 @@
+import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
+import org.opencv.core.Size;
+import org.opencv.core.Scalar;
+import org.opencv.core.Point;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.dnn.*;
+import org.opencv.dnn.Dnn;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.*;
+import org.opencv.core.Core;
+import java.util.*;
+import java.lang.Object;
+import java.lang.*;
+
+
+public class Main {
+	public static int[][] POSE_PAIRS =
+		{
+			{0, 1},
+			{1, 2},
+			{2, 3},
+			{3, 4},
+			{0, 5},
+			{5, 6},
+			{6, 7},
+			{7, 8},
+			{0, 9},
+			{9, 10},
+			{10, 11},
+			{11, 12},
+			{0, 13},
+			{13, 14},
+			{14, 15},
+			{15, 16},
+			{0, 17},
+			{17, 18},
+			{18, 19},
+			{19, 20}
+		};
+
+		public static String protoFile = "hand/pose_deploy.prototxt";
+		public static String weightsFile = "hand/pose_iter_102000.caffemodel";
+
+		public static int nPoints = 22;
+	
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		float thresh = (float)0.01;
+		
+		VideoCapture cap = new VideoCapture();
+	
+		//int deviceID=0;
+		//int apiID=0;
+		cap.open(0);
+		
+		Mat frame = new Mat();
+		Mat frameCopy = new Mat();
+		int frameWidth  = (int)cap.get(Videoio.CAP_PROP_FRAME_WIDTH);
+		int frameHeight = (int)cap.get(Videoio.CAP_PROP_FRAME_HEIGHT);
+		
+		float aspect_ratio = frameWidth /(float) frameHeight;
+		int inHeight =368;
+		int inWidth =((int)(aspect_ratio *inHeight)*8)/8;
+		
+		System.out.print("inWidth = ");
+		System.out.print(inWidth);
+		System.out.print(" ; inHeight = ");
+		System.out.print(inHeight);
+		System.out.print("\n");
+		
+		Net net = Dnn.readNetFromCaffe(protoFile, weightsFile);
+		
+		double t = 0;
+		while (true)
+		{
+			cap.read(frame);
+			
+			 t = (double)Core.getTickCount();
+			 
+			 //cap >> frame
+			 
+		     frameCopy = frame.clone();
+			 
+			 Mat inpBlob = Dnn.blobFromImage(frame, 1.0/ 255, new Size(inWidth, inHeight), new Scalar(0, 0, 0) , false, false);
+			 net.setInput(inpBlob);
+			 
+			 Mat output = net.forward();
+			 
+			 int H = output.size(2);
+			 int W = output.size(3);
+			 
+			 ArrayList<Point> points = new ArrayList<Point>(nPoints);
+			 
+
+				for (int n = 0; n < nPoints; n++)
+				{
+					//Mat probMap = new Mat(H, W, CvType.CV_32F,output.ptr(0,n));
+					Mat probMap = new Mat(H, W, CvType.CV_32F);
+					Imgproc.resize(probMap, probMap, new Size(frameWidth, frameHeight));
+
+					Point maxLoc = new Point();
+					double prob = 0;
+					
+					
+					//minMaxLoc(probMap, 0, prob, 0, maxLoc);
+					Core.minMaxLoc(probMap);  
+					
+					if (prob > thresh)
+					{
+						Imgproc.circle(frameCopy, new Point((int)maxLoc.x, (int)maxLoc.y), 8, new Scalar(0, 255, 255), -1);
+						Imgproc.putText(frameCopy, "n" ,new Point((int)maxLoc.x, (int)maxLoc.y), Core.FONT_HERSHEY_COMPLEX, 1,new Scalar(0, 0, 255), 2);
+
+					}
+					points.set(n, maxLoc);
+				}
+				
+				int nPairs = POSE_PAIRS.length;
+
+				for (int n = 0; n < nPairs; n++)
+				{
+					// lookup 2 connected body/hand parts
+					
+					Point partA = points.get(POSE_PAIRS[n][0]);
+					Point partB = points.get(POSE_PAIRS[n][1]);
+
+					if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+					{
+						continue;
+					}
+
+					//line(frame, partA, partB, Scalar(0, 255, 255), 8);
+					Imgproc.circle(frame, partA, 8, new Scalar(0, 0, 255), -1);
+					Imgproc.circle(frame, partB, 8, new Scalar(0, 0, 255), -1);
+				}
+
+				t = ((double)Core.getTickCount() - t) / Core.getTickFrequency();
+				System.out.print("Time Taken for frame = ");
+				System.out.print(t);
+				System.out.print("\n");
+				Imgproc.putText(frame,"t",new Point(50, 50),Core.FONT_HERSHEY_COMPLEX, .8, new Scalar(255, 50, 0), 2);
+				
+				//frame.setVisible(true);
+				
+						}
+	}
+
+
+}
