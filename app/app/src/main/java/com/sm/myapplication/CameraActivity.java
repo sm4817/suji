@@ -26,7 +26,7 @@ public class CameraActivity extends AppCompatActivity
     private Mat matInput;
     private Mat matResult;
 
-    public native void ConvertRGBtoGray(long matAddrInput, long matAddrResult);
+    public native void ConvertRGBtoGray(long matAddrInput, long matAddrResult,int frameWidths,int frameHeights);
 
 
     static {
@@ -123,14 +123,17 @@ public class CameraActivity extends AppCompatActivity
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
         matInput = inputFrame.rgba();
-
         //if ( matResult != null ) matResult.release(); fix 2018. 8. 18
 
+        int frameWidth  = matInput.width();
+        int frameHeight = matInput.height();
+
         if ( matResult == null )
-
+        {
             matResult = new Mat(matInput.rows(), matInput.cols(), matInput.type());
+        }
 
-        ConvertRGBtoGray(matInput.getNativeObjAddr(), matResult.getNativeObjAddr());
+        ConvertRGBtoGray(matInput.getNativeObjAddr(), matResult.getNativeObjAddr(),frameWidth,frameHeight);
 
         return matResult;
     }

@@ -15,7 +15,7 @@ extern "C" {
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_com_sm_myapplication_CameraActivity_ConvertRGBtoGray
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong,jint,jint);
 
 #ifdef __cplusplus
 }

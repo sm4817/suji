@@ -46,4 +46,6 @@
         android:text="로그"
         android:id="@+id/log"/>
     </LinearLayout>
+
+
 </LinearLayout>
