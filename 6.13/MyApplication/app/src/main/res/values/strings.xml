@@ -1,0 +1,73 @@
+<resources>
+    <string name="app_name">My Application</string>
+
+    <string name="pain_prompt">통증을 선택하세요</string>
+    <string name="sex_prompt">성별을 선택하세요</string>
+    <string name="age_prompt">연령대를 선택하세요</string>
+
+    <string-array name="pain_array">
+        <item>스트레스</item>
+        <item>가래</item>
+        <item>비염</item>
+        <item>소화불량</item>
+        <item>무릎</item>
+        <item>담</item>
+        <item>만성피로</item>
+    </string-array>
+
+    <string-array name="sex_array">
+        <item>남</item>
+        <item>여</item>
+    </string-array>
+
+    <string-array name="age_array">
+        <item>10대</item>
+        <item>20대</item>
+        <item>30대</item>
+        <item>40대</item>
+        <item>50대</item>
+        <item>60대</item>
+        <item>70대</item>
+    </string-array>
+
+    <string name="oneText">
+                   두통 수지침 혈자리\n
+         중지의 첫마디점을 손으로 꾹꾹 눌러도 되고\n
+        손바닥과 손목이 만나는 지점을 꾹꾹 눌러줍니다.\n
+            이러한 행동을 3~5회 반복합니다.\n
+    </string>
+
+    <string name="twoText">
+                           눈이 침침할때 수지침 혈자리\n
+                 가운데 손가락 양옆을 누르거나 잡고 틀어주면서 풀어줍니다.\n
+        가운데 손가락 지문 중앙을 손톱이나 이쑤시게 등으로 누르며 자극을 줍니다.\n
+        </string>
+
+    <string name="threeText">
+                     수면부족 수지침 혈자리\n
+      엄지 중지 새끼손가락을 부드럽게 마사지하면서 문질러 주세요.\n
+    </string>
+
+    <string name="fourText">
+                       어깨가 결릴떄 수지침 혈자리\n
+                중지의 양옆 부분을 자극을 주면서 눌러줍니다.\n
+         검지 중지 약지 손등쪽으로 젖히면서 자극을 주면서 풀어줍니다.\n
+        </string>
+
+    <string name="fiveText">
+                                 허리 요통 수지침 혈자리\n
+        손을 쫙 편 상태에서 중지와 연결된 손등 뼈 양쪽을 자극을 주면서 꾹꾹 눌러줍니다.\n
+        반복된 자극을 주면서 눌러서 아픔지점은 살살 문지르듯 풀어주면 좋다.\n
+    </string>
+
+    <string name="sixText">
+        장기에 따른 혈자리 \n
+        첫번째 손가락은 간, 둘째손가락은 심장, 셋째 손가락은 비장 \n
+        넷째 손가락은 폐, 다섯 번째 손가락은 신장과 자궁에 속합니다. \n
+        손바닥과 손가락에는 오장육부와 연관이 있는 혈이 있기때문에 \n
+        자주 손을 주물러 주거나 마사지를 해주면 건강증진에 도움이 됩니다. \n
+
+    </string>
+
+
+</resources>

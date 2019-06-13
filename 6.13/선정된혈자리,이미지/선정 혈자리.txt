@@ -1,0 +1,16 @@
+두통 12
+기관기(천식, 가래) 10
+11 코 (비염)
+위 (소화불량) 9
+담  13
+무릎이 아플때 18
+만성 피로 0
+
+
+        <item>두통</item>
+        <item>기관기</item>
+        <item>비염</item>
+        <item>소화불량</item>
+        <item>무릎</item>
+        <item>담</item>
+        <item>만성피로</item>
