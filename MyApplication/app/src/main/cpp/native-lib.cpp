@@ -5,29 +5,25 @@
 #include <opencv2/dnn.hpp>
 #include <iostream>
 
-
 using namespace std;
 using namespace cv;
 using namespace cv::dnn;
 
-
-
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_myapplication_Camera_imageprocessing1(JNIEnv *env, jobject instance,
-                                                            jlong inputImage, jlong outputImage,
-                                                            jint th1, jint th2) {
-
-    Mat &img_input = *(Mat *) inputImage;
-    Mat &img_output = *(Mat *) outputImage;
+                                                       jlong matAddrInput, jlong matAddrResult,
+                                                       jint frameWidths, jint frameHeights) {
 
 
+    Mat &matInput = *(Mat *)matAddrInput;
+    Mat &matResult = *(Mat *)matAddrResult;
     const int POSE_PAIRS[20][2] =
             {
                     {0,  1},
                     {1,  2},
                     {2,  3},
-                    {3,  4},         // thumb
+                    {3,  4},// thumb
                     {0,  5},
                     {5,  6},
                     {6,  7},
@@ -55,11 +51,9 @@ Java_com_example_myapplication_Camera_imageprocessing1(JNIEnv *env, jobject inst
 
     Mat frame, frameCopy;
 
-    frame = img_input;
-    img_output =frame.clone();
-    int frameWidth = frame.cols;
-    int frameHeight = frame.rows;
 
+    int frameWidth = (int)frameWidths;
+    int frameHeight = (int)frameHeights;
     float aspect_ratio = frameWidth / (float) frameHeight;
     int inHeight = 368;
     int inWidth = (int(aspect_ratio * inHeight) * 8) / 8;
@@ -67,76 +61,113 @@ Java_com_example_myapplication_Camera_imageprocessing1(JNIEnv *env, jobject inst
 
     Net net = readNetFromCaffe(protoFile,weightsFile);
 
-    cvtColor(frame, frame, COLOR_BGRA2BGR);
-
-    if (img_input.empty()) {
+    cvtColor(matInput, matInput, COLOR_BGRA2BGR);
+    // wait for a new frame from camera and store it into 'frame'
+    // check if we succeeded
+    if (matInput.empty()) {
         cerr << "ERROR! blank frame grabbed\n";
     }
+    // show live and wait for a key with timeout long enough to show images
+    //imshow("Live", frame);
+    //if (waitKey(5) >= 0)
+    //	break;
 
-
-    Mat inpBlob = blobFromImage(frame, 1.0 / 255, Size(inWidth, inHeight), Scalar(0, 0, 0),
+    matResult = matInput.clone();
+    Mat inpBlob = blobFromImage(matInput, 1.0 / 255, Size(inWidth, inHeight), Scalar(0, 0, 0),
                                 false, false);
+
     net.setInput(inpBlob);
 
-    Mat output = net.forward();
+    Mat output= net.forward();
 
     int H = output.size[2];
     int W = output.size[3];
 
     // find the position of the body parts
     vector<Point> points(nPoints);
+
     for (int n = 0; n < nPoints; n++) {
         // Probability map of corresponding body's part.
-        Mat probMap(H, W, CV_32F, output.ptr(0, n));
-        resize(probMap, probMap, Size(frameWidth, frameHeight));
-
-        Point maxLoc;
-        double prob;
-        minMaxLoc(probMap, 0, &prob, 0, &maxLoc);
-        if (prob > thresh) {
-            circle(img_output, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(255, 0, 0),
-                   -1);
-            putText(img_output, cv::format("%d", n),
-                    Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1,
-                    Scalar(255, 0, 0), 2);
-
+        if ( n == 9 || n == 11 || n == 12 || n == 18)
+        {
+            Mat probMap(H, W, CV_32F, output.ptr(0, n));
+            resize(probMap, probMap, Size(frameWidth, frameHeight));
+            Point maxLoc;
+            double prob;
+            minMaxLoc(probMap, 0, &prob, 0, &maxLoc);
+            if (prob > thresh)
+            {
+                if(n==9) {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8,Scalar(255, 0, 0), -1);
+                    putText(matResult, cv::format("%s","Dyspepsia"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0), 2);
+                }
+                else if(n==11)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Nose"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==12)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Stress"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==18)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Knee"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+            }
+            points[n] = maxLoc;
         }
-        points[n] = maxLoc;
     }
-
     int nPairs = sizeof(POSE_PAIRS) / sizeof(POSE_PAIRS[0]);
 
-    for (int n = 0; n < nPairs; n++) {
+    for (int n = 0; n < nPairs; n++)
+    {
         // lookup 2 connected body/hand parts
-        Point2f partA = points[POSE_PAIRS[n][0]];
-        Point2f partB = points[POSE_PAIRS[n][1]];
+        if ( n == 9 || n == 11 || n == 12 || n == 18) {
+            if(n==9) {
 
-        if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
-            continue;
+                Point2f partA = points[POSE_PAIRS[n][0]];
+                Point2f partB = points[POSE_PAIRS[n][1]];
 
-        //line(frame, partA, partB, Scalar(0, 255, 255), 8);
-        circle(img_input, partA, 8, Scalar(255, 0, 0), -1);
-        circle(img_input, partB, 8, Scalar(255, 0, 0), -1);
+                if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+                    continue;
+
+                line(matResult, partA, partB, Scalar(0, 255, 255), 8);
+                circle(matInput, partA, 8, Scalar(255, 0, 0), -1);
+                circle(matInput, partB, 8, Scalar(255, 0, 0), -1);
+            } else
+            {
+                Point2f partA = points[POSE_PAIRS[n][0]];
+                Point2f partB = points[POSE_PAIRS[n][1]];
+
+                if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+                    continue;
+
+                line(frame, partA, partB, Scalar(0, 255, 255), 8);
+                circle(matInput, partA, 8, Scalar(0, 0, 255), -1);
+                circle(matInput, partB, 8, Scalar(0, 0, 255), -1);
+            }
+        }
     }
 }
-
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_myapplication_Camera_imageprocessing2(JNIEnv *env, jobject instance,
-                                                       jlong inputImage, jlong outputImage,
-                                                       jint th1, jint th2) {
-
-    Mat &img_input = *(Mat *) inputImage;
-    Mat &img_output = *(Mat *) outputImage;
+                                                       jlong matAddrInput, jlong matAddrResult,
+                                                       jint frameWidths, jint frameHeights) {
 
 
+    Mat &matInput = *(Mat *)matAddrInput;
+    Mat &matResult = *(Mat *)matAddrResult;
     const int POSE_PAIRS[20][2] =
             {
                     {0,  1},
                     {1,  2},
                     {2,  3},
-                    {3,  4},         // thumb
+                    {3,  4},// thumb
                     {0,  5},
                     {5,  6},
                     {6,  7},
@@ -164,11 +195,8 @@ Java_com_example_myapplication_Camera_imageprocessing2(JNIEnv *env, jobject inst
 
     Mat frame, frameCopy;
 
-    frame = img_input;
-    img_output =frame.clone();
-    int frameWidth = frame.cols;
-    int frameHeight = frame.rows;
-
+    int frameWidth = (int)frameWidths;
+    int frameHeight = (int)frameHeights;
     float aspect_ratio = frameWidth / (float) frameHeight;
     int inHeight = 368;
     int inWidth = (int(aspect_ratio * inHeight) * 8) / 8;
@@ -176,15 +204,21 @@ Java_com_example_myapplication_Camera_imageprocessing2(JNIEnv *env, jobject inst
 
     Net net = readNetFromCaffe(protoFile,weightsFile);
 
-    cvtColor(frame, frame, COLOR_BGRA2BGR);
-
-    if (img_input.empty()) {
+    cvtColor(matInput, matInput, COLOR_BGRA2BGR);
+    // wait for a new frame from camera and store it into 'frame'
+    // check if we succeeded
+    if (matInput.empty()) {
         cerr << "ERROR! blank frame grabbed\n";
     }
+    // show live and wait for a key with timeout long enough to show images
+    //imshow("Live", frame);
+    //if (waitKey(5) >= 0)
+    //	break;
 
-
-    Mat inpBlob = blobFromImage(frame, 1.0 / 255, Size(inWidth, inHeight), Scalar(0, 0, 0),
+    matResult = matInput.clone();
+    Mat inpBlob = blobFromImage(matInput, 1.0 / 255, Size(inWidth, inHeight), Scalar(0, 0, 0),
                                 false, false);
+
     net.setInput(inpBlob);
 
     Mat output = net.forward();
@@ -194,58 +228,89 @@ Java_com_example_myapplication_Camera_imageprocessing2(JNIEnv *env, jobject inst
 
     // find the position of the body parts
     vector<Point> points(nPoints);
+
     for (int n = 0; n < nPoints; n++) {
         // Probability map of corresponding body's part.
-        Mat probMap(H, W, CV_32F, output.ptr(0, n));
-        resize(probMap, probMap, Size(frameWidth, frameHeight));
-
-        Point maxLoc;
-        double prob;
-        minMaxLoc(probMap, 0, &prob, 0, &maxLoc);
-        if (prob > thresh) {
-            circle(img_output, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(255, 0, 0),
-                   -1);
-            putText(img_output, cv::format("%d", n),
-                    Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1,
-                    Scalar(255, 0, 0), 2);
-
+        if (  n == 9 || n == 11 || n == 12 || n == 18)
+        {
+            Mat probMap(H, W, CV_32F, output.ptr(0, n));
+            resize(probMap, probMap, Size(frameWidth, frameHeight));
+            Point maxLoc;
+            double prob;
+            minMaxLoc(probMap, 0, &prob, 0, &maxLoc);
+            if (prob > thresh)
+            {
+                if(n==9) {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8,Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Dyspepsia"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX,1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==11)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(255, 0, 0), -1);
+                    putText(matResult, cv::format("%s","Nose"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0), 2);
+                }
+                else if(n==12)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Stress"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==18)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Knee"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+            }
+            points[n] = maxLoc;
         }
-        points[n] = maxLoc;
     }
-
     int nPairs = sizeof(POSE_PAIRS) / sizeof(POSE_PAIRS[0]);
 
-    for (int n = 0; n < nPairs; n++) {
+    for (int n = 0; n < nPairs; n++)
+    {
         // lookup 2 connected body/hand parts
-        Point2f partA = points[POSE_PAIRS[n][0]];
-        Point2f partB = points[POSE_PAIRS[n][1]];
+        if (  n == 9 || n == 11 || n == 12 || n == 18) {
+            if(n==11) {
 
-        if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
-            continue;
+                Point2f partA = points[POSE_PAIRS[n][0]];
+                Point2f partB = points[POSE_PAIRS[n][1]];
 
-        //line(frame, partA, partB, Scalar(0, 255, 255), 8);
-        circle(img_input, partA, 8, Scalar(255, 0, 0), -1);
-        circle(img_input, partB, 8, Scalar(255, 0, 0), -1);
+                if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+                    continue;
+
+                //line(frame, partA, partB, Scalar(0, 255, 255), 8);
+                circle(matInput, partA, 8, Scalar(255, 0, 0), -1);
+                circle(matInput, partB, 8, Scalar(255, 0, 0), -1);
+            } else
+            {
+                Point2f partA = points[POSE_PAIRS[n][0]];
+                Point2f partB = points[POSE_PAIRS[n][1]];
+
+                if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+                    continue;
+
+                //line(frame, partA, partB, Scalar(0, 255, 255), 8);
+                circle(matInput, partA, 8, Scalar(0, 0, 255), -1);
+                circle(matInput, partB, 8, Scalar(0, 0, 255), -1);
+            }
+        }
     }
-
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_myapplication_Camera_imageprocessing3(JNIEnv *env, jobject instance,
-                                                       jlong inputImage, jlong outputImage,
-                                                       jint th1, jint th2) {
-
-    Mat &img_input = *(Mat *) inputImage;
-    Mat &img_output = *(Mat *) outputImage;
+                                                       jlong matAddrInput, jlong matAddrResult,
+                                                       jint frameWidths, jint frameHeights) {
 
 
+    Mat &matInput = *(Mat *)matAddrInput;
+    Mat &matResult = *(Mat *)matAddrResult;
     const int POSE_PAIRS[20][2] =
             {
                     {0,  1},
                     {1,  2},
                     {2,  3},
-                    {3,  4},         // thumb
+                    {3,  4},// thumb
                     {0,  5},
                     {5,  6},
                     {6,  7},
@@ -273,11 +338,8 @@ Java_com_example_myapplication_Camera_imageprocessing3(JNIEnv *env, jobject inst
 
     Mat frame, frameCopy;
 
-    frame = img_input;
-    img_output =frame.clone();
-    int frameWidth = frame.cols;
-    int frameHeight = frame.rows;
-
+    int frameWidth = (int)frameWidths;
+    int frameHeight = (int)frameHeights;
     float aspect_ratio = frameWidth / (float) frameHeight;
     int inHeight = 368;
     int inWidth = (int(aspect_ratio * inHeight) * 8) / 8;
@@ -285,15 +347,21 @@ Java_com_example_myapplication_Camera_imageprocessing3(JNIEnv *env, jobject inst
 
     Net net = readNetFromCaffe(protoFile,weightsFile);
 
-    cvtColor(frame, frame, COLOR_BGRA2BGR);
-
-    if (img_input.empty()) {
+    cvtColor(matInput, matInput, COLOR_BGRA2BGR);
+    // wait for a new frame from camera and store it into 'frame'
+    // check if we succeeded
+    if (matInput.empty()) {
         cerr << "ERROR! blank frame grabbed\n";
     }
+    // show live and wait for a key with timeout long enough to show images
+    //imshow("Live", frame);
+    //if (waitKey(5) >= 0)
+    //	break;
 
-
-    Mat inpBlob = blobFromImage(frame, 1.0 / 255, Size(inWidth, inHeight), Scalar(0, 0, 0),
+    matResult = matInput.clone();
+    Mat inpBlob = blobFromImage(matInput, 1.0 / 255, Size(inWidth, inHeight), Scalar(0, 0, 0),
                                 false, false);
+
     net.setInput(inpBlob);
 
     Mat output = net.forward();
@@ -303,58 +371,89 @@ Java_com_example_myapplication_Camera_imageprocessing3(JNIEnv *env, jobject inst
 
     // find the position of the body parts
     vector<Point> points(nPoints);
+
     for (int n = 0; n < nPoints; n++) {
         // Probability map of corresponding body's part.
-        Mat probMap(H, W, CV_32F, output.ptr(0, n));
-        resize(probMap, probMap, Size(frameWidth, frameHeight));
-
-        Point maxLoc;
-        double prob;
-        minMaxLoc(probMap, 0, &prob, 0, &maxLoc);
-        if (prob > thresh) {
-            circle(img_output, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(255, 0, 0),
-                   -1);
-            putText(img_output, cv::format("%d", n),
-                    Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1,
-                    Scalar(255, 0, 0), 2);
-
+        if ( n == 9 || n == 11 || n == 12 || n == 18)
+        {
+            Mat probMap(H, W, CV_32F, output.ptr(0, n));
+            resize(probMap, probMap, Size(frameWidth, frameHeight));
+            Point maxLoc;
+            double prob;
+            minMaxLoc(probMap, 0, &prob, 0, &maxLoc);
+            if (prob > thresh)
+            {
+                if(n==9) {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8,Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Dyspepsia"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==11)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0,255,255), -1);
+                    putText(matResult, cv::format("%s","Nose"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==12)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(255, 0, 0), -1);
+                    putText(matResult, cv::format("%s","Stress"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0), 2);
+                }
+                else if(n==18)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Knee"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1,Scalar(0, 255, 255), 2);
+                }
+            }
+            points[n] = maxLoc;
         }
-        points[n] = maxLoc;
     }
-
     int nPairs = sizeof(POSE_PAIRS) / sizeof(POSE_PAIRS[0]);
 
-    for (int n = 0; n < nPairs; n++) {
+    for (int n = 0; n < nPairs; n++)
+    {
         // lookup 2 connected body/hand parts
-        Point2f partA = points[POSE_PAIRS[n][0]];
-        Point2f partB = points[POSE_PAIRS[n][1]];
+        if ( n == 9 || n == 11 || n == 12 || n == 18) {
+            if(n==12) {
 
-        if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
-            continue;
+                Point2f partA = points[POSE_PAIRS[n][0]];
+                Point2f partB = points[POSE_PAIRS[n][1]];
 
-        //line(frame, partA, partB, Scalar(0, 255, 255), 8);
-        circle(img_input, partA, 8, Scalar(255, 0, 0), -1);
-        circle(img_input, partB, 8, Scalar(255, 0, 0), -1);
+                if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+                    continue;
+
+                //line(frame, partA, partB, Scalar(0, 255, 255), 8);
+                circle(matInput, partA, 8, Scalar(255, 0, 0), -1);
+                circle(matInput, partB, 8, Scalar(255, 0, 0), -1);
+            } else
+            {
+                Point2f partA = points[POSE_PAIRS[n][0]];
+                Point2f partB = points[POSE_PAIRS[n][1]];
+
+                if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+                    continue;
+
+                //line(frame, partA, partB, Scalar(0, 255, 255), 8);
+                circle(matInput, partA, 8, Scalar(0, 0, 255), -1);
+                circle(matInput, partB, 8, Scalar(0, 0, 255), -1);
+            }
+        }
     }
-
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_myapplication_Camera_imageprocessing4(JNIEnv *env, jobject instance,
-                                                       jlong inputImage, jlong outputImage,
-                                                       jint th1, jint th2) {
-
-    Mat &img_input = *(Mat *) inputImage;
-    Mat &img_output = *(Mat *) outputImage;
+                                                       jlong matAddrInput, jlong matAddrResult,
+                                                       jint frameWidths, jint frameHeights) {
 
 
+    Mat &matInput = *(Mat *)matAddrInput;
+    Mat &matResult = *(Mat *)matAddrResult;
     const int POSE_PAIRS[20][2] =
             {
                     {0,  1},
                     {1,  2},
                     {2,  3},
-                    {3,  4},         // thumb
+                    {3,  4},// thumb
                     {0,  5},
                     {5,  6},
                     {6,  7},
@@ -382,11 +481,8 @@ Java_com_example_myapplication_Camera_imageprocessing4(JNIEnv *env, jobject inst
 
     Mat frame, frameCopy;
 
-    frame = img_input;
-    img_output =frame.clone();
-    int frameWidth = frame.cols;
-    int frameHeight = frame.rows;
-
+    int frameWidth = (int)frameWidths;
+    int frameHeight = (int)frameHeights;
     float aspect_ratio = frameWidth / (float) frameHeight;
     int inHeight = 368;
     int inWidth = (int(aspect_ratio * inHeight) * 8) / 8;
@@ -394,15 +490,21 @@ Java_com_example_myapplication_Camera_imageprocessing4(JNIEnv *env, jobject inst
 
     Net net = readNetFromCaffe(protoFile,weightsFile);
 
-    cvtColor(frame, frame, COLOR_BGRA2BGR);
-
-    if (img_input.empty()) {
+    cvtColor(matInput, matInput, COLOR_BGRA2BGR);
+    // wait for a new frame from camera and store it into 'frame'
+    // check if we succeeded
+    if (matInput.empty()) {
         cerr << "ERROR! blank frame grabbed\n";
     }
+    // show live and wait for a key with timeout long enough to show images
+    //imshow("Live", frame);
+    //if (waitKey(5) >= 0)
+    //	break;
 
-
-    Mat inpBlob = blobFromImage(frame, 1.0 / 255, Size(inWidth, inHeight), Scalar(0, 0, 0),
+    matResult = matInput.clone();
+    Mat inpBlob = blobFromImage(matInput, 1.0 / 255, Size(inWidth, inHeight), Scalar(0, 0, 0),
                                 false, false);
+
     net.setInput(inpBlob);
 
     Mat output = net.forward();
@@ -412,37 +514,70 @@ Java_com_example_myapplication_Camera_imageprocessing4(JNIEnv *env, jobject inst
 
     // find the position of the body parts
     vector<Point> points(nPoints);
+
     for (int n = 0; n < nPoints; n++) {
         // Probability map of corresponding body's part.
-        Mat probMap(H, W, CV_32F, output.ptr(0, n));
-        resize(probMap, probMap, Size(frameWidth, frameHeight));
-
-        Point maxLoc;
-        double prob;
-        minMaxLoc(probMap, 0, &prob, 0, &maxLoc);
-        if (prob > thresh) {
-            circle(img_output, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(255, 0, 0),
-                   -1);
-            putText(img_output, cv::format("%d", n),
-                    Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1,
-                    Scalar(255, 0, 0), 2);
-
+        if ( n == 9 || n == 11 || n == 12 || n == 18)
+        {
+            Mat probMap(H, W, CV_32F, output.ptr(0, n));
+            resize(probMap, probMap, Size(frameWidth, frameHeight));
+            Point maxLoc;
+            double prob;
+            minMaxLoc(probMap, 0, &prob, 0, &maxLoc);
+            if (prob > thresh)
+            {
+                if(n==9) {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8,Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Dyspepsia"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==11)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Nose"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==12)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(0, 255, 255), -1);
+                    putText(matResult, cv::format("%s","Stress"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 255), 2);
+                }
+                else if(n==18)
+                {
+                    circle(matResult, cv::Point((int) maxLoc.x, (int) maxLoc.y), 8, Scalar(255, 0, 0), -1);
+                    putText(matResult, cv::format("%s","Knee"), Point((int) maxLoc.x, (int) maxLoc.y), FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0), 2);
+                }
+            }
+            points[n] = maxLoc;
         }
-        points[n] = maxLoc;
     }
-
     int nPairs = sizeof(POSE_PAIRS) / sizeof(POSE_PAIRS[0]);
 
-    for (int n = 0; n < nPairs; n++) {
+    for (int n = 0; n < nPairs; n++)
+    {
         // lookup 2 connected body/hand parts
-        Point2f partA = points[POSE_PAIRS[n][0]];
-        Point2f partB = points[POSE_PAIRS[n][1]];
+        if ( n == 9 || n == 11 || n == 12 || n == 18) {
+            if(n==18) {
 
-        if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
-            continue;
+                Point2f partA = points[POSE_PAIRS[n][0]];
+                Point2f partB = points[POSE_PAIRS[n][1]];
 
-        //line(frame, partA, partB, Scalar(0, 255, 255), 8);
-        circle(img_input, partA, 8, Scalar(255, 0, 0), -1);
-        circle(img_input, partB, 8, Scalar(255, 0, 0), -1);
+                if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+                    continue;
+
+                //line(frame, partA, partB, Scalar(0, 255, 255), 8);
+                circle(matInput, partA, 8, Scalar(255, 0, 0), -1);
+                circle(matInput, partB, 8, Scalar(255, 0, 0), -1);
+            } else
+            {
+                Point2f partA = points[POSE_PAIRS[n][0]];
+                Point2f partB = points[POSE_PAIRS[n][1]];
+
+                if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
+                    continue;
+
+                //line(frame, partA, partB, Scalar(0, 255, 255), 8);
+                circle(matInput, partA, 8, Scalar(0, 0, 255), -1);
+                circle(matInput, partB, 8, Scalar(0, 0, 255), -1);
+            }
+        }
     }
 }

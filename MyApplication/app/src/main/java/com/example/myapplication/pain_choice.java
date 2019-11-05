@@ -3,6 +3,8 @@ package com.example.myapplication;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -11,12 +13,14 @@ import android.widget.Button;
 import android.widget.Spinner;
 
 public class pain_choice extends AppCompatActivity {
+    String age;
+    String sex;
+    String suji;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pain_choice);
-
         final Spinner painspn = (Spinner) findViewById(R.id.painspinner);
         Spinner sexspn = (Spinner) findViewById(R.id.sexspinner);
         Spinner agespn = (Spinner) findViewById(R.id.agespinner);
@@ -29,7 +33,7 @@ public class pain_choice extends AppCompatActivity {
         painspn.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
+                    suji = parent.getItemAtPosition(position).toString();
             }
 
             @Override
@@ -44,6 +48,7 @@ public class pain_choice extends AppCompatActivity {
         sexspn.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    sex = parent.getItemAtPosition(position).toString();
 
             }
 
@@ -59,7 +64,7 @@ public class pain_choice extends AppCompatActivity {
         agespn.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
+                    age = parent.getItemAtPosition(position).toString();
             }
 
             @Override
@@ -74,9 +79,17 @@ public class pain_choice extends AppCompatActivity {
                 String str_pain = painspn.getSelectedItem().toString();
                 Intent camerapageIntent = new Intent(pain_choice.this, Camera.class);
                 camerapageIntent.putExtra("pain", str_pain);
+                ApplicationClass.sex=sex;
+                ApplicationClass.age=age;
+                ApplicationClass.suji=suji;
                 startActivity(camerapageIntent);
             }
         });
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

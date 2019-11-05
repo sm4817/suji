@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
@@ -18,12 +19,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-        Button painbnt = (Button)findViewById(R.id.pain_bnt);
-        Button sujiInfobnt = (Button)findViewById(R.id.sujiinfo_bnt);
-        Button logbnt = (Button)findViewById(R.id.log_bnt);
-        Button setbnt = (Button)findViewById(R.id.setting_bnt);
+
+        ImageButton painbnt = (ImageButton)findViewById(R.id.pain_bnt);
+        ImageButton sujiInfobnt = (ImageButton)findViewById(R.id.sujiinfo_bnt);
+        ImageButton logbnt = (ImageButton)findViewById(R.id.log_bnt);
+        ImageButton setbnt = (ImageButton)findViewById(R.id.setting_bnt);
         painbnt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -56,6 +57,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        startSplash();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    private void startSplash() {
+        Intent splashintent = new Intent(this, Splash.class);
+        startActivity(splashintent);
+    }
+
 }
+

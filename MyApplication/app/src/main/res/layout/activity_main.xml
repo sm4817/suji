@@ -3,34 +3,131 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:gravity="center"
+    android:background="#ffffff">
 
-    <Button
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/splash_image2" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textColor="#000000"
+            android:text="EVERYSUJI"
+            android:textSize="20dp" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="350dp"
         android:layout_height="wrap_content"
-        android:text="통증 선택"
-        android:id="@+id/pain_bnt"
-        />
-    <Button
-        android:layout_width="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:layout_width="175dp"
+            android:layout_height="150dp"
+            android:id="@+id/pain_bnt"
+            android:padding="0dp"
+            android:src="@drawable/select"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            />
+
+        <ImageButton
+            android:layout_width="175dp"
+            android:layout_height="150dp"
+            android:id="@+id/sujiinfo_bnt"
+            android:padding="0dp"
+            android:src="@drawable/info"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            />
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="350dp"
         android:layout_height="wrap_content"
-        android:text="혈자리 정보"
-        android:id="@+id/sujiinfo_bnt"
-        />
-    <Button
-        android:layout_width="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="175dp"
+            android:layout_height="wrap_content"
+            android:text="통증 선택"
+            android:textAlignment="center"
+            android:textColor="#000000"
+            android:layout_marginBottom="50dp"
+            android:textSize="20dp" />
+
+        <TextView
+            android:layout_width="175dp"
+            android:layout_height="wrap_content"
+            android:text="혈자리 정보"
+            android:textColor="#000000"
+            android:textAlignment="center"
+            android:layout_marginBottom="50dp"
+            android:textSize="20dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="350dp"
         android:layout_height="wrap_content"
-        android:text="로그"
-        android:id="@+id/log_bnt"
-        />
-    <Button
-        android:layout_width="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/log_bnt"
+            android:layout_width="175dp"
+            android:layout_height="150dp"
+            android:background="@android:color/transparent"
+            android:padding="0dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/log" />
+
+        <ImageButton
+            android:layout_width="175dp"
+            android:layout_height="150dp"
+            android:id="@+id/setting_bnt"
+            android:padding="0dp"
+            android:src="@drawable/settings"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            />
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="350dp"
         android:layout_height="wrap_content"
-        android:text="설정"
-        android:id="@+id/setting_bnt"
-        />
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="175dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="50dp"
+            android:text="로그 확인"
+            android:textColor="#000000"
+            android:textAlignment="center"
+            android:textSize="20dp" />
+
+        <TextView
+            android:layout_width="175dp"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:text="설정"
+            android:textAlignment="center"
+            android:layout_marginBottom="50dp"
+            android:textSize="20dp"/>
+
+    </LinearLayout>
 
 </LinearLayout>
